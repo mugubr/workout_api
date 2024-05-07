@@ -11,6 +11,8 @@ from workout_api.centro_treinamento.models import CentroTreinamentoModel
 from workout_api.contrib.dependencies import DatabaseDependency
 from sqlalchemy.future import select
 from sqlalchemy.exc import IntegrityError
+from fastapi_pagination import LimitOffsetPage, paginate
+
 router = APIRouter()
 
 
@@ -64,13 +66,13 @@ async def post(
     '/', 
     summary='Consultar todos os atletas (podendo filtrá-los por nome e/ou CPF)', 
     status_code=status.HTTP_200_OK,
-    response_model=list[AtletaAllOut]
+    response_model=LimitOffsetPage[AtletaAllOut]
 )
 async def query(
     db_session: DatabaseDependency, 
     nome: Optional[str] = Query(None, description="Nome do atleta"),
     cpf: Optional[str] = Query(None, description="CPF do atleta")
-) -> list[AtletaOut]:
+) -> LimitOffsetPage[AtletaOut]:
         filtros = []
     
         if nome:
@@ -80,7 +82,7 @@ async def query(
         
         atletas = (await db_session.execute(select(AtletaModel).filter(or_(*filtros)))).scalars().all() 
     
-        return [AtletaAllOut.model_validate(atleta) for atleta in atletas]
+        return paginate([AtletaAllOut.model_validate(atleta) for atleta in atletas])
 
 @router.get(
     '/{id}', 
