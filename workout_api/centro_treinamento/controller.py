@@ -50,7 +50,7 @@ async def query(
     status_code=status.HTTP_200_OK,
     response_model=CentroTreinamentoOut
 )
-async def query(
+async def get(
     id: UUID4, 
     db_session: DatabaseDependency, 
 ) -> CentroTreinamentoOut:
